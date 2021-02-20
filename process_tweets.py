@@ -4,6 +4,7 @@ import numpy as np
 import tweepy
 from collections import defaultdict
 import json
+import time
 
 def load_keys(key_file):
     with open(key_file) as f:
@@ -29,11 +30,12 @@ def iterate_files(path, subdir):
             if subdir: file = subdir + "/" + filename
             else: file = filename
             tweet_content = defaultdict(list)
-
+            
             if filename != 'process_tweets.py': # So it doesn't read itself
                 tweet_ids = open(filePath, 'r')
                 content = tweet_ids.read()[1:-1] #removes beginning and ending [ and  ]
                 ids = np.fromstring(content, dtype=int, sep= ',')
+                tweet = None
                 for id in ids: # Each tweet id
                     try:
                         tweet = api.get_status(id) #returns status object
@@ -41,11 +43,14 @@ def iterate_files(path, subdir):
                         TODO: After running throuhg all tweet ids in each file,
                         save as a csv file for each one. needs unique name
                         """
-                        print(type(tweet))
+                        print(tweet.text)
+                    except tweepy.RateLimitError:
+                        time.sleep(900)
+                        tweet = api.get_status(id)
                     except Exception as e: # It will throw an exception if twitter user has actually been suspended
-                        print("Exception...")
-                        continue#print(content)
-
+                        continue
+                    if tweet is None:
+                        print("Shouldn't have happened...")
 
 def get_path():
     iterate_files(os.getcwd(), "")
