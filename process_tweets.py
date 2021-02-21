@@ -45,8 +45,10 @@ def iterate_files(path, subdir):
                         """
                         print(tweet.text)
                     except tweepy.RateLimitError:
+                        print("sleeping for 15 minutes")
                         time.sleep(900)
                         tweet = api.get_status(id)
+                        break
                     except Exception as e: # It will throw an exception if twitter user has actually been suspended
                         continue
                     if tweet is None:
